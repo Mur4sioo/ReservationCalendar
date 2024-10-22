@@ -1,0 +1,52 @@
+﻿@page "/"
+@using System.Globalization
+@using System.Reflection.Metadata
+@using Microsoft.EntityFrameworkCore
+@using ReservationCalendar.Components.Data
+@using ReservationCalendar.Components.Models
+@using ReservationCalendar.Components.Services
+@rendermode InteractiveServer
+@inject Services.CalendarServices CalendarServices
+@inject DataContext DataContext
+
+<PageTitle>Home</PageTitle>
+
+
+<div class="reservationForm">
+    <EditForm Model="@reservation">
+        <div class="UserDataForm">
+            <label>Podaj Imię: </label>
+            <InputText placeholder="Imię" @bind-Value="user.FirstName"></InputText>
+            <br />
+            <br />
+            <label>Podaj Nazwisko: </label>
+            <InputText placeholder="Nazwisko" @bind-Value="user.LastName"></InputText>
+            <br />
+            <br />
+            <label>Podaj Numer Telefonu: </label>
+            <InputText placeholder="Numer Telefonu" @bind-Value="user.PhoneNumber"></InputText>
+            <br />
+            <br />
+        </div>
+        <div class="TrainerSelection">
+            <label>Proszę wybrać trenera</label>
+            <InputSelect @bind-Value="reservation.ReservationTreinerId">
+                @foreach (var trainer in trainers)
+                {
+                    <option value="@trainer.TrainerId">@trainer.TrainerName</option>
+                }
+            </InputSelect>
+        </div>
+    </EditForm>
+</div>
+@code
+{
+    ReservationModel reservation = new ReservationModel();
+    UsersModel user = new UsersModel();
+    List<TrainerModel> trainers = new List<TrainerModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        trainers = await CalendarServices.GetTrainerList();
+    }
+}
