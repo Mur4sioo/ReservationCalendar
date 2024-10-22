@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Radzen;
 using ReservationCalendar.Components;
 using ReservationCalendar.Components.Data;
 using ReservationCalendar.Components.Services;
@@ -18,6 +19,7 @@ namespace ReservationCalendar
             builder.Services.AddServerSideBlazor();
             builder.Services.AddDbContext<DataContext>(options => options.UseSqlite(connectionString));
             builder.Services.AddScoped<Services.CalendarServices>();
+            builder.Services.AddRadzenComponents();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

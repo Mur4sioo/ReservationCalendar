@@ -1,0 +1,56 @@
+﻿@page "/adminpage"
+@using System.Globalization
+@using ReservationCalendar.Components.Models
+@using ReservationCalendar.Components.Services
+@inject Services.CalendarServices CalendarServices
+
+<h3>Admin Page</h3>
+
+<EditForm Model="@availability">
+    <div>
+        <label>Select Trainer:</label>
+        <InputSelect @bind-Value="availability.TrainerId">
+            @foreach (var trainer in trainers)
+            {
+                <option value="@trainer.TrainerId">@trainer.TrainerName @trainer.TrainerLastName</option>
+            }
+        </InputSelect>
+    </div>
+    <div>
+        <label>Select Date:</label>
+        <InputDate @bind-Value="availability.Date" />
+    </div>
+    <div>
+        <label>Set Available Hours:</label>
+        <InputText @bind-Value="availability.Hours" placeholder="e.g., 09:00, 10:30, 14:00" />
+    </div>
+    <button type="submit" @* @onclick="SaveAvailability" *@>Save</button>
+</EditForm>
+
+@code {
+    private List<TrainerModel> trainers = new List<TrainerModel>();
+    private AvailabilityModel availability = new AvailabilityModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        trainers = await CalendarServices.GetTrainerList();
+    }
+
+    // private async Task SaveAvailability()
+    // {
+    //     // Parse the hours string into a list of DateTime objects
+    //     var hours = availability.Hours.Split(',')
+    //         .Select(h => DateTime.ParseExact(h.Trim(), "HH:mm", CultureInfo.InvariantCulture))
+    //         .ToList();
+
+    //     // Save the availability data
+    //     await CalendarServices.SetTrainerAvailability(availability.TrainerId, availability.Date, hours);
+    // }
+
+    public class AvailabilityModel
+    {
+        public int TrainerId { get; set; }
+        public DateTime Date { get; set; }
+        public string Hours { get; set; } // e.g., "09:00, 10:30, 14:00"
+    }
+}

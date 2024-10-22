@@ -10,5 +10,7 @@ namespace ReservationCalendar.Components
         public string TrainerLastName { get; set; }
         public string TrainerPhoneNumber { get; set; }
         public bool TrainerAvailability { get; set; }
+        public DateTime StartAvailability { get; set; }
+        public DateTime EndAvailability { get; set; }
     }
 }

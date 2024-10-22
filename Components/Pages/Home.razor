@@ -1,17 +1,22 @@
 ﻿@page "/"
 @using System.Globalization
 @using System.Reflection.Metadata
+@using System.Xml.Linq
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.VisualBasic
 @using ReservationCalendar.Components.Data
 @using ReservationCalendar.Components.Models
 @using ReservationCalendar.Components.Services
+@using Radzen.Blazor
 @rendermode InteractiveServer
 @inject Services.CalendarServices CalendarServices
 @inject DataContext DataContext
 
 <PageTitle>Home</PageTitle>
 
-
+<div>
+    <NavLink class="btn btn-primary" href="/adminpage">Go to Admin Page</NavLink>
+</div>
 <div class="reservationForm">
     <EditForm Model="@reservation">
         <div class="UserDataForm">
@@ -30,23 +35,73 @@
         </div>
         <div class="TrainerSelection">
             <label>Proszę wybrać trenera</label>
-            <InputSelect @bind-Value="reservation.ReservationTreinerId">
+            <InputSelect @bind-Value="trainerId">
                 @foreach (var trainer in trainers)
                 {
-                    <option value="@trainer.TrainerId">@trainer.TrainerName</option>
+                    <option value="@trainer.TrainerId">@trainer.TrainerName @trainer.TrainerLastName</option>
                 }
             </InputSelect>
         </div>
+        <div class="ReservationDate">
+            <label>Proszę wybrać datę rezerwacji</label>
+            <div class="rz-p-12 rz-text-align-center">
+                <RadzenDatePicker @bind-Value="reservationDate" Inline="true" />
+            </div>
+        </div>
+        <div class="availableHours">
+            @foreach (var hour in availableHours)
+            {
+                <label>@hour.ToString("HH:mm")</label>
+            }
+        </div>
+        <p>@reservationDate</p>
+        <p>@trainerId</p>
     </EditForm>
 </div>
 @code
 {
-    ReservationModel reservation = new ReservationModel();
     UsersModel user = new UsersModel();
     List<TrainerModel> trainers = new List<TrainerModel>();
+    List<DateTime> availableHours = new List<DateTime>();
+    private int _trainerId;
+    public int trainerId
+    {
+        get => _trainerId;
+        set
+        {
+            _trainerId = value;
+            reservation.ReservationTreinerId = value;
+            OnTrainerSelected(value);
+        }
+    }
+    private DateTime _reservationDate = DateTime.Now;
+    public DateTime reservationDate
+    {
+        get => _reservationDate;
+        set
+        {
+            _reservationDate = value;
+            reservation.ReservationDate = value;
+            OnDateChange(value);
+        }
+    }
+    ReservationModel reservation = new ReservationModel
+    {
+        ReservationDate = DateTime.Now
+    };
 
     protected override async Task OnInitializedAsync()
     {
         trainers = await CalendarServices.GetTrainerList();
+    }
+
+    public async Task OnDateChange(DateTime newDate)
+    {
+        Console.WriteLine("xd");
+        availableHours = await CalendarServices.GetTrainerHoursAvailability(trainerId);
+    }
+    private async Task OnTrainerSelected(int id)
+    {
+        Console.WriteLine($"OnTrainerSelected called {id} "); 
     }
 }
