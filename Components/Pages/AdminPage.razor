@@ -33,11 +33,11 @@
    <button type="submit" @onclick="SaveAvailability">Save</button>  
 </EditForm>  
 <p>@trainerId @_trainerId</p>
-@if (TrainerAvailabilities != null && TrainerAvailabilities.Any())  
+@if (trainerAvailabilityList != null && trainerAvailabilityList.Any())  
 {  
    <h4>Terminy</h4>  
    <ul>  
-       @foreach (var availability in TrainerAvailabilities)  
+       @foreach (var availability in trainerAvailabilityList)  
        {  
            <li>  
                @availability.AvailabilityDay.ToString("dd/MM/yyyy") @availability.StartTime.ToString(@"hh\:mm") - @availability.EndTime.ToString(@"hh\:mm")  
@@ -50,30 +50,34 @@
    <ul>
        @foreach (var reservation in reservationList)
        {
-           if (reservation.ReservationTrainerId == trainerId)
-           {
+            if (reservation.ReservationTrainerId == trainerId)
+            {
+                var user = CalendarServices.GetUserName(reservation).Result;
                <li>
+                   @user
+                    @reservation.ReservationStartTime.ToString(@"hh\:mm")
+                    - @reservation.ReservationEndTime.ToString(@"hh\:mm")
                    @reservation.ReservationDate.ToString("dd/MM/yyyy")
-                   @reservation.ReservationStartTime.ToString(@"hh\:mm")
-                   - @reservation.ReservationEndTime.ToString(@"hh\:mm")
                    - @reservation.Status
-                   
+
                </li>
            }
        }
    </ul>  
 }
 <RadzenNotification @ref="notificationInstance" />  
-@code {  
-   private List<TrainerModel> trainers = new List<TrainerModel>();  
-   private TrainerAvailabilityModel availability = new TrainerAvailabilityModel();  
-   private List<TrainerAvailabilityModel> TrainerAvailabilities = new List<TrainerAvailabilityModel>();  
-   private List<ReservationModel> reservationList = new List<ReservationModel>();
-   private RadzenNotification notificationInstance;
+@code {
+    private List<TrainerModel> trainers = new List<TrainerModel>();  
+    private TrainerAvailabilityModel availability = new TrainerAvailabilityModel();  
+    private List<TrainerAvailabilityModel> trainerAvailabilityList = new List<TrainerAvailabilityModel>();  
+    private List<ReservationModel> reservationList = new List<ReservationModel>();
+    private List<UsersModel> usersList = new List<UsersModel>();
+    private RadzenNotification notificationInstance;
    private TimeSpan sessionDuration = TimeSpan.FromHours(1.5);
    
-   protected override async Task OnInitializedAsync()  
-   {  
+   protected override async Task OnInitializedAsync()
+   {
+       usersList = await CalendarServices.GetUsersList();
        trainers = await CalendarServices.GetTrainerList();
        reservationList = await CalendarServices.GetReservationList();
    }  
@@ -115,8 +119,8 @@
    }
    private async Task OnTrainerSelected(int trainerId)
    {
-           TrainerAvailabilities = await CalendarServices.GetTrainerAvailabilityList(trainerId);
-           TrainerAvailabilities.Sort((a, b) => a.AvailabilityDay.CompareTo(b.AvailabilityDay));    
+           trainerAvailabilityList = await CalendarServices.GetTrainerAvailabilityList(trainerId);
+           trainerAvailabilityList.Sort((a, b) => a.AvailabilityDay.CompareTo(b.AvailabilityDay));    
            StateHasChanged();    
    }
    private void EditAvailability(TrainerAvailabilityModel selectedAvailability)  

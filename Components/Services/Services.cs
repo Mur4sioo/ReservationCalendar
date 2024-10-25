@@ -26,6 +26,11 @@ namespace ReservationCalendar.Components.Services
             {
                 return await _context.Reservations.ToListAsync();
             }
+
+            public async Task<List<UsersModel>> GetUsersList()
+            {
+                return await _context.Users.ToListAsync();
+            }
             public async Task<List<TrainerAvailabilityModel>> GetTrainerAvailabilityList(int trainerId)
             {
                 return await _context.TrainerAvailabilities
@@ -44,6 +49,12 @@ namespace ReservationCalendar.Components.Services
 
                 _context.TrainerAvailabilities.Add(trainerAvailability);
                 await _context.SaveChangesAsync();
+            }
+
+            public async Task<string> GetUserName(ReservationModel reservation)
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == reservation.ReservationUserId);
+                return $"{user.FirstName} {user.LastName} nr. Tel.: {user.PhoneNumber}";
             }
             public async Task<List<TimeSpan>> GetAvailableTimeSlots(int trainerId, DateTime date, TimeSpan sessionDuration)
             {
