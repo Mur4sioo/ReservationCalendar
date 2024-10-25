@@ -1,56 +1,135 @@
-﻿@page "/adminpage"
-@using System.Globalization
-@using ReservationCalendar.Components.Models
-@using ReservationCalendar.Components.Services
-@inject Services.CalendarServices CalendarServices
+﻿@page "/adminpage"  
+@using System.Globalization  
+@using Microsoft.AspNetCore.Identity  
+@using ReservationCalendar.Components.Models  
+@using ReservationCalendar.Components.Services  
+@inject Services.CalendarServices CalendarServices  
+@inject Radzen.NotificationService notificationService  
+<h3>Admin Page</h3>  
 
-<h3>Admin Page</h3>
+<EditForm Model="@availability">  
+   <div>  
+       <label>Select Trainer:</label>  
+       <InputSelect @bind-Value="trainerId">  
+           @foreach (var trainer in trainers)  
+           {  
+               <option value="@trainer.TrainerId">@trainer.TrainerName @trainer.TrainerLastName</option>  
+           }  
+       </InputSelect>  
+   </div>  
+   <div>  
+       <div class="rz-p-12 rz-text-align-center">  
+           <RadzenDatePicker @bind-Value="availability.AvailabilityDay" Inline="true" />  
+       </div>  
+   </div>  
+   <div>  
+       <label>Podaj godzinę rozpoczęcia:</label>  
+       <InputText @bind-Value="StartTimeString" placeholder="np. 15:00" />  
+   </div>  
+   <div>  
+       <label>Podaj godzinę zakończenia:</label>  
+       <InputText @bind-Value="EndTimeString" placeholder="np 20:00" />  
+   </div>  
+   <button type="submit" @onclick="SaveAvailability">Save</button>  
+</EditForm>  
+<p>@trainerId @_trainerId</p>
+@if (TrainerAvailabilities != null && TrainerAvailabilities.Any())  
+{  
+   <h4>Terminy</h4>  
+   <ul>  
+       @foreach (var availability in TrainerAvailabilities)  
+       {  
+           <li>  
+               @availability.AvailabilityDay.ToString("dd/MM/yyyy") @availability.StartTime.ToString(@"hh\:mm") - @availability.EndTime.ToString(@"hh\:mm")  
+               <button @onclick="() => EditAvailability(availability)">Edit</button>  
+               <button @onclick="() => DeleteAvailability(availability.Id)">Delete</button>  
+           </li>  
+       }
+   </ul>
+   <h4>Rezerwacje</h4>
+   <ul>
+       @foreach (var reservation in reservationList)
+       {
+           if (reservation.ReservationTrainerId == trainerId)
+           {
+               <li>
+                   @reservation.ReservationDate.ToString("dd/MM/yyyy")
+                   @reservation.ReservationStartTime.ToString(@"hh\:mm")
+                   - @reservation.ReservationEndTime.ToString(@"hh\:mm")
+                   - @reservation.Status
+                   
+               </li>
+           }
+       }
+   </ul>  
+}
+<RadzenNotification @ref="notificationInstance" />  
+@code {  
+   private List<TrainerModel> trainers = new List<TrainerModel>();  
+   private TrainerAvailabilityModel availability = new TrainerAvailabilityModel();  
+   private List<TrainerAvailabilityModel> TrainerAvailabilities = new List<TrainerAvailabilityModel>();  
+   private List<ReservationModel> reservationList = new List<ReservationModel>();
+   private RadzenNotification notificationInstance;
+   private TimeSpan sessionDuration = TimeSpan.FromHours(1.5);
+   
+   protected override async Task OnInitializedAsync()  
+   {  
+       trainers = await CalendarServices.GetTrainerList();
+       reservationList = await CalendarServices.GetReservationList();
+   }  
+   private int _trainerId;  
+   public int trainerId  
+   {  
+       get => _trainerId;  
+       set  
+       {  
+           _trainerId = value;  
+           availability.TrainerId= value;  
+           OnTrainerSelected(value);  
+       }  
+   }  
+   private string StartTimeString  
+   {  
+       get => availability.StartTime.ToString(@"hh\:mm");  
+       set => availability.StartTime = TimeSpan.ParseExact(value, @"hh\:mm", CultureInfo.InvariantCulture);  
+   }  
 
-<EditForm Model="@availability">
-    <div>
-        <label>Select Trainer:</label>
-        <InputSelect @bind-Value="availability.TrainerId">
-            @foreach (var trainer in trainers)
-            {
-                <option value="@trainer.TrainerId">@trainer.TrainerName @trainer.TrainerLastName</option>
-            }
-        </InputSelect>
-    </div>
-    <div>
-        <label>Select Date:</label>
-        <InputDate @bind-Value="availability.Date" />
-    </div>
-    <div>
-        <label>Set Available Hours:</label>
-        <InputText @bind-Value="availability.Hours" placeholder="e.g., 09:00, 10:30, 14:00" />
-    </div>
-    <button type="submit" @* @onclick="SaveAvailability" *@>Save</button>
-</EditForm>
-
-@code {
-    private List<TrainerModel> trainers = new List<TrainerModel>();
-    private AvailabilityModel availability = new AvailabilityModel();
-
-    protected override async Task OnInitializedAsync()
-    {
-        trainers = await CalendarServices.GetTrainerList();
-    }
-
-    // private async Task SaveAvailability()
-    // {
-    //     // Parse the hours string into a list of DateTime objects
-    //     var hours = availability.Hours.Split(',')
-    //         .Select(h => DateTime.ParseExact(h.Trim(), "HH:mm", CultureInfo.InvariantCulture))
-    //         .ToList();
-
-    //     // Save the availability data
-    //     await CalendarServices.SetTrainerAvailability(availability.TrainerId, availability.Date, hours);
-    // }
-
-    public class AvailabilityModel
-    {
-        public int TrainerId { get; set; }
-        public DateTime Date { get; set; }
-        public string Hours { get; set; } // e.g., "09:00, 10:30, 14:00"
-    }
+   private string EndTimeString  
+   {  
+       get => availability.EndTime.ToString(@"hh\:mm");  
+       set => availability.EndTime = TimeSpan.ParseExact(value, @"hh\:mm", CultureInfo.InvariantCulture);  
+   }  
+   private async Task SaveAvailability()  
+   {  
+       if (availability.Id == 0)  
+       {  
+           notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Availability saved successfully!" });  
+           await CalendarServices.SaveTrainerAvailability(availability);  
+       }  
+       else  
+       {  
+           notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Availability updated successfully!" });  
+           await CalendarServices.UpdateTrainerAvailability(availability);  
+       }  
+       await OnTrainerSelected(trainerId);  
+   }
+   private async Task OnTrainerSelected(int trainerId)
+   {
+           TrainerAvailabilities = await CalendarServices.GetTrainerAvailabilityList(trainerId);
+           TrainerAvailabilities.Sort((a, b) => a.AvailabilityDay.CompareTo(b.AvailabilityDay));    
+           StateHasChanged();    
+   }
+   private void EditAvailability(TrainerAvailabilityModel selectedAvailability)  
+   {  
+       availability = selectedAvailability;  
+       trainerId = selectedAvailability.TrainerId;  
+       StartTimeString = selectedAvailability.StartTime.ToString(@"hh\:mm");  
+       EndTimeString = selectedAvailability.EndTime.ToString(@"hh\:mm");  
+   }  
+   private async Task DeleteAvailability(int availabilityId)  
+   {  
+       await CalendarServices.DeleteTrainerAvailability(availabilityId);  
+       notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Availability deleted successfully!" });  
+       await OnTrainerSelected(trainerId); // Refresh the list after deleting  
+   }  
 }

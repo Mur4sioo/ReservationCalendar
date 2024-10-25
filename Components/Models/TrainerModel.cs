@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using ReservationCalendar.Components.Models;
 
 namespace ReservationCalendar.Components
 {
@@ -9,8 +10,5 @@ namespace ReservationCalendar.Components
         public string TrainerName { get; set; }
         public string TrainerLastName { get; set; }
         public string TrainerPhoneNumber { get; set; }
-        public bool TrainerAvailability { get; set; }
-        public DateTime StartAvailability { get; set; }
-        public DateTime EndAvailability { get; set; }
     }
 }

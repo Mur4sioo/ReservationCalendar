@@ -20,7 +20,7 @@ namespace ReservationCalendar.Migrations
                 oldType: "TEXT");
 
             migrationBuilder.AlterColumn<int>(
-                name: "ReservationTreinerId",
+                name: "ReservationTrainerId",
                 table: "Reservations",
                 type: "INTEGER",
                 nullable: false,
@@ -51,7 +51,7 @@ namespace ReservationCalendar.Migrations
                 oldType: "INTEGER");
 
             migrationBuilder.AlterColumn<string>(
-                name: "ReservationTreinerId",
+                name: "ReservationTrainerId",
                 table: "Reservations",
                 type: "TEXT",
                 nullable: false,

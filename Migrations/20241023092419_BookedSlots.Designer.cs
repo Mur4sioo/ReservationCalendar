@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ReservationCalendar.Components.Data;
 
@@ -10,24 +11,33 @@ using ReservationCalendar.Components.Data;
 namespace ReservationCalendar.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241023092419_BookedSlots")]
+    partial class BookedSlots
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
 
             modelBuilder.Entity("ReservationCalendar.Components.Models.TrainerAvailabilityModel", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("AvailabilityId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("AvailabilityDay")
+                    b.Property<string>("BookedSlots")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
 
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsBooked")
+                        .HasColumnType("INTEGER");
 
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("TEXT");
@@ -35,9 +45,11 @@ namespace ReservationCalendar.Migrations
                     b.Property<int>("TrainerId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
+                    b.HasKey("AvailabilityId");
 
-                    b.ToTable("TrainerAvailabilities");
+                    b.HasIndex("TrainerId");
+
+                    b.ToTable("TrainerAvailability");
                 });
 
             modelBuilder.Entity("ReservationCalendar.Components.Models.UsersModel", b =>
@@ -72,21 +84,14 @@ namespace ReservationCalendar.Migrations
                     b.Property<DateTime>("ReservationDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<TimeSpan>("ReservationEndTime")
+                    b.Property<DateTime>("ReservationTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<TimeSpan>("ReservationStartTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("ReservationTrainerId")
+                    b.Property<int>("ReservationTreinerId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("ReservationUserId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.HasKey("ReservationId");
 
@@ -114,6 +119,22 @@ namespace ReservationCalendar.Migrations
                     b.HasKey("TrainerId");
 
                     b.ToTable("Trainers");
+                });
+
+            modelBuilder.Entity("ReservationCalendar.Components.Models.TrainerAvailabilityModel", b =>
+                {
+                    b.HasOne("ReservationCalendar.Components.TrainerModel", "Trainer")
+                        .WithMany("Availability")
+                        .HasForeignKey("TrainerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Trainer");
+                });
+
+            modelBuilder.Entity("ReservationCalendar.Components.TrainerModel", b =>
+                {
+                    b.Navigation("Availability");
                 });
 #pragma warning restore 612, 618
         }

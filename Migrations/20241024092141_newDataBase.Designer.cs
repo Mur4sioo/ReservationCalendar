@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ReservationCalendar.Components.Data;
 
@@ -10,35 +11,14 @@ using ReservationCalendar.Components.Data;
 namespace ReservationCalendar.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241024092141_newDataBase")]
+    partial class newDataBase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
-
-            modelBuilder.Entity("ReservationCalendar.Components.Models.TrainerAvailabilityModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("AvailabilityDay")
-                        .HasColumnType("TEXT");
-
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TrainerId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TrainerAvailabilities");
-                });
 
             modelBuilder.Entity("ReservationCalendar.Components.Models.UsersModel", b =>
                 {
@@ -84,10 +64,6 @@ namespace ReservationCalendar.Migrations
                     b.Property<int>("ReservationUserId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.HasKey("ReservationId");
 
                     b.ToTable("Reservations");
@@ -95,8 +71,24 @@ namespace ReservationCalendar.Migrations
 
             modelBuilder.Entity("ReservationCalendar.Components.TrainerModel", b =>
                 {
-                    b.Property<int>("TrainerId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BookedSlots")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("TrainerAvailabilityDay")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeSpan>("TrainerAvailabilityEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeSpan>("TrainerAvailabilityStart")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TrainerId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("TrainerLastName")
@@ -111,7 +103,7 @@ namespace ReservationCalendar.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("TrainerId");
+                    b.HasKey("Id");
 
                     b.ToTable("Trainers");
                 });

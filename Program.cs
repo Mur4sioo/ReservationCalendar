@@ -19,6 +19,8 @@ namespace ReservationCalendar
             builder.Services.AddServerSideBlazor();
             builder.Services.AddDbContext<DataContext>(options => options.UseSqlite(connectionString));
             builder.Services.AddScoped<Services.CalendarServices>();
+            builder.Services.AddScoped<OutdatedAvailabilityCleanupService>();
+            builder.Services.AddScoped<NotificationService>();
             builder.Services.AddRadzenComponents();
             var app = builder.Build();
 

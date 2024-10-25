@@ -7,9 +7,10 @@
 @using ReservationCalendar.Components.Data
 @using ReservationCalendar.Components.Models
 @using ReservationCalendar.Components.Services
-@using Radzen.Blazor
+@using Radzen
 @rendermode InteractiveServer
 @inject Services.CalendarServices CalendarServices
+@inject Radzen.NotificationService notificationService
 @inject DataContext DataContext
 
 <PageTitle>Home</PageTitle>
@@ -18,7 +19,7 @@
     <NavLink class="btn btn-primary" href="/adminpage">Go to Admin Page</NavLink>
 </div>
 <div class="reservationForm">
-    <EditForm Model="@reservation">
+    <EditForm Model="@reservation" OnValidSubmit="BookTraining">
         <div class="UserDataForm">
             <label>Podaj Imię: </label>
             <InputText placeholder="Imię" @bind-Value="user.FirstName"></InputText>
@@ -51,18 +52,25 @@
         <div class="availableHours">
             @foreach (var hour in availableHours)
             {
-                <label>@hour.ToString("HH:mm")</label>
+                <button class="hour-button @(selectedHour == hour ? "selected" : "")" @onclick="() => SelectHour(hour)">
+                    @hour.ToString(@"hh\:mm")
+                </button>
             }
         </div>
+        <button type="submit" class="btn btn-success">Book Training</button>
         <p>@reservationDate</p>
         <p>@trainerId</p>
     </EditForm>
+    <RadzenNotification @ref="notificationInstance"></RadzenNotification>
 </div>
 @code
 {
     UsersModel user = new UsersModel();
     List<TrainerModel> trainers = new List<TrainerModel>();
-    List<DateTime> availableHours = new List<DateTime>();
+    List<TimeSpan> availableHours = new List<TimeSpan>();
+    private RadzenNotification notificationInstance;
+    private TimeSpan sessionDuration = TimeSpan.FromHours(1.5);
+    private TimeSpan? selectedHour = null;
     private int _trainerId;
     public int trainerId
     {
@@ -70,7 +78,7 @@
         set
         {
             _trainerId = value;
-            reservation.ReservationTreinerId = value;
+            reservation.ReservationTrainerId = value;
             OnTrainerSelected(value);
         }
     }
@@ -80,28 +88,91 @@
         get => _reservationDate;
         set
         {
-            _reservationDate = value;
-            reservation.ReservationDate = value;
-            OnDateChange(value);
+            _reservationDate = value.Date;
+            reservation.ReservationDate = value.Date;
+            OnDateChange(value.Date);
         }
     }
     ReservationModel reservation = new ReservationModel
     {
-        ReservationDate = DateTime.Now
+        ReservationDate = DateTime.Now.Date
     };
 
     protected override async Task OnInitializedAsync()
     {
         trainers = await CalendarServices.GetTrainerList();
     }
-
-    public async Task OnDateChange(DateTime newDate)
+    private void SelectHour(TimeSpan hour)
     {
-        Console.WriteLine("xd");
-        availableHours = await CalendarServices.GetTrainerHoursAvailability(trainerId);
+        selectedHour = hour;
+        reservation.ReservationStartTime = hour;
     }
-    private async Task OnTrainerSelected(int id)
+    public async void OnDateChange(DateTime newDate)
     {
-        Console.WriteLine($"OnTrainerSelected called {id} "); 
+        if (trainerId != 0)
+        {
+            var availableTimeSpans = await CalendarServices.GetAvailableTimeSlots(trainerId, newDate, sessionDuration);
+            availableHours = availableTimeSpans.ToList();
+            StateHasChanged();
+        }
+    }
+
+    private async void OnTrainerSelected(int id)
+    {
+        if (reservationDate != DateTime.MinValue)
+        {
+            var availableTimeSpans = await CalendarServices.GetAvailableTimeSlots(id, reservationDate, sessionDuration);
+            availableHours = availableTimeSpans.ToList();
+            StateHasChanged();
+        }
+    }
+    private async Task BookTraining()
+    {
+        if (string.IsNullOrEmpty(user.FirstName) || string.IsNullOrEmpty(user.LastName) || string.IsNullOrEmpty(user.PhoneNumber) || trainerId == 0 || selectedHour == null)
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Proszę, wypełnij wszystkie pola." });
+            return;
+        }
+
+        // Check if the selected time slot is still available
+        var isAvailable = await CalendarServices.IsTimeSlotAvailable(trainerId, reservationDate, selectedHour, (selectedHour+sessionDuration));
+        if (!isAvailable)
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Wybrana godzina jest juz nie dostępna." });
+            return;
+        }
+
+        // Check if the user already exists
+        var existingUser = await CalendarServices.GetUserByPhoneNumber(user.PhoneNumber);
+        if (existingUser != null)
+        {
+            user = existingUser;
+        }
+        else
+        {
+            // Create a new user
+            var newUser = new UsersModel
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber
+            };
+
+            await CalendarServices.AddUser(newUser);
+            user = newUser;
+        }
+
+        // Proceed with booking
+        reservation.ReservationDate = reservationDate;
+        reservation.ReservationStartTime = selectedHour;
+        reservation.ReservationEndTime = selectedHour.Add(new TimeSpan(1, 30, 0));
+        reservation.ReservationUserId = user.Id;
+        reservation.ReservationTrainerId = trainerId;
+        reservation.Status = "Oczekujące";
+        
+
+        await CalendarServices.BookTraining(reservation);
+        notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Trening zarezerwowany pomyślnie!" });
+        // Show success message or redirect to another page
     }
 }

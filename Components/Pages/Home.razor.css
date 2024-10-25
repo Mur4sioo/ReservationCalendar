@@ -1,4 +1,23 @@
 ﻿.reservationForm {
     text-align: center;
-    background-color: aqua;
+    background-color:darkgoldenrod;
+}
+
+button.hour-button {
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    background-color: #f8f8f8;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button.hour-button.selected {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+button.hour-button:hover {
+    background-color: #e0e0e0;
 }

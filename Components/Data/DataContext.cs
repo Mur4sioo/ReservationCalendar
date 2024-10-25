@@ -21,5 +21,6 @@ namespace ReservationCalendar.Components.Data
         public DbSet<UsersModel> Users { get; set; }
         public DbSet<TrainerModel> Trainers { get; set; }
         public DbSet<ReservationModel> Reservations { get; set; }
+        public DbSet<TrainerAvailabilityModel> TrainerAvailabilities { get; set; }
     }
 }
