@@ -59,7 +59,8 @@
                     - @reservation.ReservationEndTime.ToString(@"hh\:mm")
                    @reservation.ReservationDate.ToString("dd/MM/yyyy")
                    - @reservation.Status
-
+                   <button @onclick="() => StatusChange(reservation)">Zmień status rezerwacji</button>
+                   <button @onclick="() => DeleteReservation(reservation)">Usuń rezerwacje</button>
                </li>
            }
        }
@@ -102,7 +103,18 @@
    {  
        get => availability.EndTime.ToString(@"hh\:mm");  
        set => availability.EndTime = TimeSpan.ParseExact(value, @"hh\:mm", CultureInfo.InvariantCulture);  
-   }  
+   }
+
+   private async Task StatusChange(ReservationModel selectedReservation)
+   {
+       await CalendarServices.StatusChange(selectedReservation);
+   }
+
+   private async Task DeleteReservation(ReservationModel selectedReservation)
+   {
+       await CalendarServices.DeleteReservation(selectedReservation);
+       StateHasChanged();
+   }
    private async Task SaveAvailability()  
    {  
        if (availability.Id == 0)  

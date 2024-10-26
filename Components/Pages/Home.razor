@@ -174,5 +174,6 @@
         await CalendarServices.BookTraining(reservation);
         notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Trening zarezerwowany pomyślnie!" });
         // Show success message or redirect to another page
+        StateHasChanged();
     }
 }

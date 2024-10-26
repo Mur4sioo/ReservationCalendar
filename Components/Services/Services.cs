@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Runtime.CompilerServices;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using ReservationCalendar.Components;
 using ReservationCalendar.Components.Models;
@@ -51,6 +52,25 @@ namespace ReservationCalendar.Components.Services
                 await _context.SaveChangesAsync();
             }
 
+            public async Task StatusChange(ReservationModel selectedReservation)
+            {
+                if (selectedReservation.Status == "Oczekujące")
+                {
+                    selectedReservation.Status = "Zaakceptowane";
+                }
+                else
+                {
+                    selectedReservation.Status = "Oczekujące";
+                }
+
+                _context.SaveChangesAsync();
+            }
+
+            public async Task DeleteReservation(ReservationModel selectedReservation)
+            {
+                _context.Remove(selectedReservation);
+                _context.SaveChangesAsync();
+            }
             public async Task<string> GetUserName(ReservationModel reservation)
             {
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == reservation.ReservationUserId);
