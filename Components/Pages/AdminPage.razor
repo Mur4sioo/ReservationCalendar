@@ -33,7 +33,7 @@
    <button type="submit" @onclick="SaveAvailability">Save</button>  
 </EditForm>  
 <p>@trainerId @_trainerId</p>
-@if (trainerAvailabilityList != null && trainerAvailabilityList.Any())  
+@if ((trainerAvailabilityList != null && trainerAvailabilityList.Any()) || reservationList != null && reservationList.Any())  
 {  
    <h4>Terminy</h4>  
    <ul>  
@@ -113,7 +113,7 @@
    private async Task DeleteReservation(ReservationModel selectedReservation)
    {
        await CalendarServices.DeleteReservation(selectedReservation);
-       StateHasChanged();
+       OnTrainerSelected(selectedReservation.ReservationTrainerId);
    }
    private async Task SaveAvailability()  
    {  
@@ -132,7 +132,8 @@
    private async Task OnTrainerSelected(int trainerId)
    {
            trainerAvailabilityList = await CalendarServices.GetTrainerAvailabilityList(trainerId);
-           trainerAvailabilityList.Sort((a, b) => a.AvailabilityDay.CompareTo(b.AvailabilityDay));    
+           trainerAvailabilityList.Sort((a, b) => a.AvailabilityDay.CompareTo(b.AvailabilityDay)); 
+           reservationList = await CalendarServices.GetReservationList();
            StateHasChanged();    
    }
    private void EditAvailability(TrainerAvailabilityModel selectedAvailability)  

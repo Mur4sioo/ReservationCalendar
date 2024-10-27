@@ -148,7 +148,7 @@ namespace ReservationCalendar.Components.Services
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
             }
-            public async Task<UsersModel?> GetUserByPhoneNumber(string phoneNumber)
+            public async Task<UsersModel?> GetUserByPhoneNumber(int phoneNumber)
             {
                 return await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
             }
