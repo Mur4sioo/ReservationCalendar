@@ -32,7 +32,6 @@
    </div>  
    <button type="submit" @onclick="SaveAvailability">Save</button>  
 </EditForm>  
-<p>@trainerId @_trainerId</p>
 @if ((trainerAvailabilityList != null && trainerAvailabilityList.Any()) || reservationList != null && reservationList.Any())  
 {  
    <h4>Terminy</h4>  
@@ -68,11 +67,11 @@
 }
 <RadzenNotification @ref="notificationInstance" />  
 @code {
-    private List<TrainerModel> trainers = new List<TrainerModel>();  
+    private IEnumerable<TrainerModel> trainers = new List<TrainerModel>();  
     private TrainerAvailabilityModel availability = new TrainerAvailabilityModel();  
-    private List<TrainerAvailabilityModel> trainerAvailabilityList = new List<TrainerAvailabilityModel>();  
-    private List<ReservationModel> reservationList = new List<ReservationModel>();
-    private List<UsersModel> usersList = new List<UsersModel>();
+    private IEnumerable<TrainerAvailabilityModel> trainerAvailabilityList = new List<TrainerAvailabilityModel>();  
+    private IEnumerable<ReservationModel> reservationList = new List<ReservationModel>();
+    private IEnumerable<UsersModel> usersList = new List<UsersModel>();
     private RadzenNotification notificationInstance;
    private TimeSpan sessionDuration = TimeSpan.FromHours(1.5);
    
@@ -129,13 +128,12 @@
        }  
        await OnTrainerSelected(trainerId);  
    }
-   private async Task OnTrainerSelected(int trainerId)
-   {
-           trainerAvailabilityList = await CalendarServices.GetTrainerAvailabilityList(trainerId);
-           trainerAvailabilityList.Sort((a, b) => a.AvailabilityDay.CompareTo(b.AvailabilityDay)); 
-           reservationList = await CalendarServices.GetReservationList();
-           StateHasChanged();    
-   }
+   private async Task OnTrainerSelected(int trainerId)  
+     {  
+         trainerAvailabilityList = (await CalendarServices.GetTrainerAvailabilityList(trainerId)).OrderBy(a => a.AvailabilityDay).ToList();  
+         reservationList = await CalendarServices.GetReservationList();  
+         StateHasChanged();      
+     }
    private void EditAvailability(TrainerAvailabilityModel selectedAvailability)  
    {  
        availability = selectedAvailability;  
@@ -148,5 +146,5 @@
        await CalendarServices.DeleteTrainerAvailability(availabilityId);  
        notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Availability deleted successfully!" });  
        await OnTrainerSelected(trainerId); // Refresh the list after deleting  
-   }  
+   }
 }

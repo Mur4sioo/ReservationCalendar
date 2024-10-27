@@ -58,8 +58,6 @@
             }
         </div>
         <button @onclick="BookTraining">Book Training</button>
-        <p>@reservationDate</p>
-        <p>@trainerId</p>
     </EditForm>
     <RadzenNotification @ref="notificationInstance"></RadzenNotification>
 </div>
@@ -134,6 +132,11 @@
             return;
         }
 
+        if (user.PhoneNumber.ToString().Length != 9)
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Podaj poprawny number telefonu." });
+            return;
+        }
         // Check if the selected time slot is still available
         var isAvailable = await CalendarServices.IsTimeSlotAvailable(trainerId, reservationDate, selectedHour, (selectedHour+sessionDuration));
         if (!isAvailable)
@@ -143,7 +146,7 @@
         }
 
         // Check if the user already exists
-        var existingUser = await CalendarServices.GetUserByPhoneNumber(user.PhoneNumber);
+        var existingUser = await CalendarServices.GetUserByPhoneNumber(user.PhoneNumber.Value);
         if (existingUser != null)
         {
             user = existingUser;
