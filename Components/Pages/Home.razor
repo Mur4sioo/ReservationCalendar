@@ -46,7 +46,7 @@
         <div class="ReservationDate">
             <label>Proszę wybrać datę rezerwacji</label>
             <div class="rz-p-12 rz-text-align-center">
-                <RadzenDatePicker @bind-Value="reservationDate" Inline="true" />
+                <RadzenDatePicker @bind-Value="reservationDate" Inline="true" Min="@minDate"/>
             </div>
         </div>
         <div class="availableHours">
@@ -63,6 +63,7 @@
 </div>
 @code
 {
+    private DateTime minDate = DateTime.Now.Subtract(TimeSpan.FromDays(1));
     UsersModel user = new UsersModel();
     List<TrainerModel> trainers = new List<TrainerModel>();
     List<TimeSpan> availableHours = new List<TimeSpan>();
