@@ -1,0 +1,15 @@
+﻿@Service_HostAddress = https://localhost:7255
+
+GET {{Service_HostAddress}}/
+
+###
+
+POST {{Service_HostAddress}}/todoitems
+Content-Type: application/json
+{
+  "TrainerId": 1,
+  "TrainerName":"Pawel",
+  "TrainerLastName": "Bartkowiak",
+  "TrainerPhoneNumber": "123123123"
+}
+###
