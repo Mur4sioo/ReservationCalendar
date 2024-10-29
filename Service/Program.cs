@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using service.DataBase;
+using Service.Endpoints;
+using Service.Models;
 
 namespace Service
 {
@@ -12,20 +14,13 @@ namespace Service
             var connectionString = builder.Configuration.GetConnectionString("BazaDanych");
             builder.Services.AddDbContext<DataContext>(options => options.UseSqlite(connectionString));
             builder.Services.AddControllers();
-            builder.Services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new() { Title = "service", Version = "v1" });
-            });
+            builder.Services.AddSwaggerGen();
             var app = builder.Build();
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "service v1"));
-            }
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
-            app.MapGet("/", async (DataContext db) =>
-                await db.Trainers.ToListAsync());
+            UsersEndpoints.MapUsersEndpoints(app);
+            
             app.UseHttpsRedirection();
 
             app.UseAuthorization();

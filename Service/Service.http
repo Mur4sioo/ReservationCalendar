@@ -13,3 +13,31 @@ Content-Type: application/json
   "TrainerPhoneNumber": "123123123"
 }
 ###
+
+POST {{Service_HostAddress}}/trainers/add
+Content-Type: application/json
+{
+  "Id": 1,
+  "FirstName":"Pawel",
+  "LastName": "Bartkowiak",
+  "PhoneNumber": "123123123"
+}
+###
+
+POST {{Service_HostAddress}}/trainers/add
+
+###
+
+POST {{Service_HostAddress}}/users/add
+Content-Type: application/json
+{
+  "Id": 2,
+  "FirstName":"Pawel",
+  "LastName": "Bartkowiak",
+  "PhoneNumber": "123123123"
+}
+###
+
+GET {{Service_HostAddress}}/users
+
+###
